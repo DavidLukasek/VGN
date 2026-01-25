@@ -10,21 +10,6 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 {
-    /// <summary>
-    /// Use this class to mediate the interactors for a controller under different interaction states
-    /// and the input actions used by them.
-    /// </summary>
-    /// <remarks>
-    /// If the teleport ray input is engaged, the Ray Interactor used for distant manipulation is disabled
-    /// and the Ray Interactor used for teleportation is enabled. If the Ray Interactor is selecting and it
-    /// is configured to allow for attach transform manipulation, all locomotion input actions are disabled
-    /// (teleport ray, move, and turn controls) to prevent input collision with the manipulation inputs used
-    /// by the ray interactor.
-    /// <br />
-    /// A typical hierarchy also includes an XR Interaction Group component to mediate between interactors.
-    /// The interaction group ensures that the Direct and Ray Interactors cannot interact at the same time,
-    /// with the Direct Interactor taking priority over the Ray Interactor.
-    /// </remarks>
     [AddComponentMenu("XR/Controller Input Action Manager")]
     public class ControllerInputActionManager : MonoBehaviour
     {
@@ -265,10 +250,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         void OnCancelTeleport(InputAction.CallbackContext context)
         {
-            // Do not deactivate the teleport interactor in this callback.
-            // We delay turning off the teleport interactor in this callback so that
-            // the teleport interactor has a chance to complete the teleport if needed.
-            // OnAfterInteractionEvents will handle deactivating its GameObject.
             m_PostponedDeactivateTeleport = true;
 
             if (m_RayInteractor != null)
@@ -324,9 +305,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             }
             else if (selectionRegion == NearFarInteractor.Region.Near)
             {
-                // Determine if the user entered the near region due to pulling back on the thumbstick.
-                // If so, postpone enabling locomotion until the user releases the thumbstick
-                // in order to avoid an immediate snap turn around from triggering on region change.
                 var hasStickInput = manipulateAttachTransform && HasStickInput(attachController);
                 if (hasStickInput)
                 {
@@ -346,7 +324,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         {
             if (m_RayInteractor.manipulateAttachTransform)
             {
-                // Disable locomotion and turn actions
                 DisableAllLocomotionActions();
             }
         }
@@ -355,7 +332,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         {
             if (m_RayInteractor.manipulateAttachTransform)
             {
-                // Re-enable the locomotion and turn actions
                 UpdateLocomotionActions();
             }
         }
@@ -365,10 +341,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             m_HoveringScrollableUI = m_UIScrollingEnabled && args.deviceModel.isScrollable;
             UpdateUIActions();
 
-            // If locomotion is occurring, wait
             if (m_HoveringScrollableUI && m_LocomotionUsers.Count == 0)
             {
-                // Disable locomotion and turn actions
                 DisableAllLocomotionActions();
             }
         }
@@ -378,7 +352,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             m_HoveringScrollableUI = false;
             UpdateUIActions();
 
-            // Re-enable the locomotion and turn actions
             UpdateLocomotionActions();
         }
 
@@ -393,8 +366,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             if (m_TeleportInteractor != null)
                 m_TeleportInteractor.gameObject.SetActive(false);
 
-            // Allow the actions to be refreshed when this component is re-enabled.
-            // See comments in Start for why we wait until Start to enable/disable actions.
             if (m_StartCalled)
             {
                 UpdateLocomotionActions();
@@ -413,17 +384,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         {
             m_StartCalled = true;
 
-            // Ensure the enabled state of locomotion and turn actions are properly set up.
-            // Called in Start so it is done after the InputActionManager enables all input actions earlier in OnEnable.
             UpdateLocomotionActions();
             UpdateUIActions();
         }
 
         protected void Update()
         {
-            // Since this behavior has the default execution order, it runs after the XRInteractionManager,
-            // so selection events have been finished by now this frame. This means that the teleport interactor
-            // has had a chance to process its select interaction event and teleport if needed.
             if (m_PostponedDeactivateTeleport)
             {
                 if (m_TeleportInteractor != null)
@@ -432,8 +398,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 m_PostponedDeactivateTeleport = false;
             }
 
-            // If stick input caused the near region to be entered,
-            // wait until the stick is released before enabling locomotion.
             if (m_PostponedNearRegionLocomotion)
             {
                 var hasStickInput = false;
@@ -457,12 +421,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         void UpdateLocomotionActions()
         {
-            // Disable/enable Teleport and Turn when Move is enabled/disabled.
             SetEnabled(m_Move, m_SmoothMotionEnabled);
             SetEnabled(m_TeleportMode, !m_SmoothMotionEnabled);
             SetEnabled(m_TeleportModeCancel, !m_SmoothMotionEnabled);
 
-            // Disable ability to turn when using continuous movement
             SetEnabled(m_Turn, !m_SmoothMotionEnabled && m_SmoothTurnEnabled);
             SetEnabled(m_SnapTurn, !m_SmoothMotionEnabled && !m_SmoothTurnEnabled);
         }
@@ -493,7 +455,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         static bool HasStickInput(InteractionAttachController attachController)
         {
-            // 75% of default 0.5 press threshold
             const float sqrStickReleaseThreshold = 0.375f * 0.375f;
 
             return attachController.manipulationInput.TryReadValue(out var stickInput) &&
@@ -522,7 +483,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         static InputAction GetInputAction(InputActionReference actionReference)
         {
-#pragma warning disable IDE0031 // Use null propagation -- Do not use for UnityEngine.Object types
+#pragma warning disable IDE0031
             return actionReference != null ? actionReference.action : null;
 #pragma warning restore IDE0031
         }

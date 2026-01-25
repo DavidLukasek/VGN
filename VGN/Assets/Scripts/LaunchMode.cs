@@ -3,13 +3,24 @@ using UnityEngine.SceneManagement;
 
 public class LaunchMode : MonoBehaviour
 {
-    public void StartPCMode() {
-        PlayerPrefs.SetString("Mode", "PC");
-        SceneManager.LoadScene("MainScene");
+    public void StartPCMode() 
+    {
+        StartMode("PC");
     }
 
-    public void StartVRMode() {
-        PlayerPrefs.SetString("Mode", "VR");
+    public void StartVRMode()
+    {
+        StartMode("VR");
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
+
+    private void StartMode(string mode)
+    {
+        PlayerPrefs.SetString("Mode", mode);
         SceneManager.LoadScene("MainScene");
     }
 }

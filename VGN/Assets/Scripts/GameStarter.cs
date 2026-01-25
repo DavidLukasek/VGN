@@ -4,21 +4,52 @@ using UnityEngine.XR.Management;
 
 public class GameStarter : MonoBehaviour
 {
-    void Start()
+    public GameObject playerPC;
+    public GameObject xrOrigin;
+
+    IEnumerator Start()
     {
         string mode = PlayerPrefs.GetString("Mode", "PC");
 
-        if (mode == "VR") {
-            StartCoroutine(StartXR());
-        } else {
-            //PC - nothing needed
+        if (playerPC) playerPC.SetActive(false);
+        if (xrOrigin) xrOrigin.SetActive(false);
+
+        if (mode == "VR")
+        {
+            yield return InitializeXR();
+
+            if (xrOrigin) xrOrigin.SetActive(true);
+        }
+        else
+        {
+            if (playerPC) playerPC.SetActive(true);
         }
     }
 
-    IEnumerator StartXR()
+    IEnumerator InitializeXR()
     {
-        XRGeneralSettings.Instance.Manager.InitializeLoader();
-        yield return null;
-        XRGeneralSettings.Instance.Manager.StartSubsystems();
+        var xrManager = XRGeneralSettings.Instance.Manager;
+        if (xrManager.activeLoader == null)
+        {
+            yield return xrManager.InitializeLoader();
+        }
+        if (xrManager.activeLoader != null)
+        {
+            xrManager.StartSubsystems();
+        }
+        else
+        {
+            Debug.LogError("Failed to initialize XR Loader.");
+        }
+    }
+
+    void OnDisable()
+    {
+        var xrManager = XRGeneralSettings.Instance.Manager;
+        if (xrManager.activeLoader != null)
+        {
+            xrManager.StopSubsystems();
+            xrManager.DeinitializeLoader();
+        }
     }
 }
