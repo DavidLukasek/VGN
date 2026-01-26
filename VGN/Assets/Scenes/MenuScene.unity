@@ -791,7 +791,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 203525917}
         m_TargetAssemblyTypeName: LaunchMode, Assembly-CSharp
-        m_MethodName: StartPCMode
+        m_MethodName: StartVRMode
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

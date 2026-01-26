@@ -9,7 +9,7 @@ public class GameStarter : MonoBehaviour
 
     IEnumerator Start()
     {
-        string mode = PlayerPrefs.GetString("Mode", "PC");
+        string mode = PlayerPrefs.GetString("Mode");
 
         if (playerPC) playerPC.SetActive(false);
         if (xrOrigin) xrOrigin.SetActive(false);
