@@ -10,6 +10,8 @@ public class PauseManager : MonoBehaviour
 
     [Header("UI")]
     public GameObject pauseCanvas;
+    public GameObject pausePanel;
+    public GameObject settingsPanel;
 
     [Header("Players")]
     public GameObject pcPlayer;
@@ -100,5 +102,17 @@ public class PauseManager : MonoBehaviour
     {
         isPaused = false;
         SceneManager.LoadScene("MenuScene");
+    }
+
+    public void ShowSettings()
+    {
+        pausePanel.SetActive(false);
+        settingsPanel.SetActive(true);
+    }
+
+    public void CloseSettings()
+    {
+        pausePanel.SetActive(true);
+        settingsPanel.SetActive(false);
     }
 }
