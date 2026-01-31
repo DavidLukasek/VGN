@@ -27,5 +27,7 @@ public class HelpManager : MonoBehaviour
             helpText.text = originalText;
             isOriginalText = true;
         }
+
+        UISoundManager.PlayHelp();
     }
 }

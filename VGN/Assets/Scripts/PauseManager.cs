@@ -95,23 +95,27 @@ public class PauseManager : MonoBehaviour
 
     public void Resume()
     {
+        UISoundManager.PlayClick();
         if (isPaused) TogglePause();
     }
 
     public void ExitToMenu()
     {
+        UISoundManager.PlayClick();
         isPaused = false;
         SceneManager.LoadScene("MenuScene");
     }
 
     public void ShowSettings()
     {
+        UISoundManager.PlayClick();
         pausePanel.SetActive(false);
         settingsPanel.SetActive(true);
     }
 
     public void CloseSettings()
     {
+        UISoundManager.PlayClick();
         pausePanel.SetActive(true);
         settingsPanel.SetActive(false);
     }
