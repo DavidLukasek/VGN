@@ -13,6 +13,7 @@ public class PCPlayerController : MonoBehaviour
     public Transform cameraTransform;
     public float mouseSensitivity = 0.1f;
     public float maxLookAngle = 80f;
+    public bool movementLocked = false;
 
     CharacterController cc;
     Vector2 moveInput;
@@ -35,13 +36,25 @@ public class PCPlayerController : MonoBehaviour
 
     public void OnLook(InputValue value)
     {
-        lookInput = value.Get<Vector2>();
+        if(!movementLocked) lookInput = value.Get<Vector2>();
     }
 
     public void OnJump(InputValue value)
     {
         if (value.isPressed && cc.isGrounded)
             verticalVelocity = jumpForce;
+    }
+
+    public void LockMovement(bool value)
+    {
+        movementLocked = value;
+    }
+
+    public void SetCameraPitchFromTransform()
+    {
+        float x = cameraTransform.localEulerAngles.x;
+        if (x > 180f) x -= 360f;
+        cameraPitch = Mathf.Clamp(x, -maxLookAngle, maxLookAngle);
     }
 
     void OnEnable()
@@ -54,10 +67,18 @@ public class PCPlayerController : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+        movementLocked = false;
     }
 
     void Update()
     {
+        if (movementLocked)
+        {
+            lookInput = Vector2.zero;
+            moveInput = Vector2.zero;
+            return;
+        }
+
         float yaw = lookInput.x * mouseSensitivity;
         transform.Rotate(0f, yaw, 0f);
 
@@ -78,6 +99,7 @@ public class PCPlayerController : MonoBehaviour
         else
         {
             verticalVelocity += gravity * fallMultiplier * Time.deltaTime;
+            
         }
         
         Vector3 velocity = move * moveSpeed;

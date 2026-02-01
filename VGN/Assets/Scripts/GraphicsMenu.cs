@@ -6,7 +6,6 @@ public class GraphicsMenu : MonoBehaviour
     {
         QualitySettings.SetQualityLevel(index, true);
         PlayerPrefs.SetInt("quality", index);
-        Debug.Log("CHANGING QUALITY TO " + index);
     }
     
     void Start()

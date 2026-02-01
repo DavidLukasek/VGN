@@ -20,6 +20,7 @@ public class LaunchMode : MonoBehaviour
 
     private void StartMode(string mode)
     {
+        UISoundManager.PlayClick();
         PlayerPrefs.SetString("Mode", mode);
         SceneManager.LoadScene("MainScene");
     }

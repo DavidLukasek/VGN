@@ -17,6 +17,7 @@ public class ButtonHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     public void OnPointerEnter(PointerEventData eventData)
     {
         buttonTMPText.text = hoverText;
+        UISoundManager.PlayHover();
     }
 
     public void OnPointerExit(PointerEventData eventData)
