@@ -7,7 +7,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI; //https://vgn-by-ddi-default-rtdb.europe-west1.firebasedatabase.app/
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 public class GuestbookManager : MonoBehaviour
 {
@@ -17,27 +20,37 @@ public class GuestbookManager : MonoBehaviour
     public Button prevButton;
     public Button nextButton;
     public TMP_Text pageInfoText;
+    public TMP_Text characterCounterText;
 
     [Header("Page Areas (Left / Right)")]
-    public Transform leftPageArea;   // parent for left page notes
-    public Transform rightPageArea;  // parent for right page notes
-    public GameObject notePrefab;    // prefab with TextMeshProUGUI
+    public Transform leftPageArea;
+    public Transform rightPageArea;
+    public GameObject notePrefab;
 
     [Header("Paging")]
-    public int itemsPerSide = 3;     // how many notes per side (default: 3 => total 6 per double-page)
-    int currentDoublePage = 0;       // 0 = první (nejstarší) dvojstránka, we'll open on last
+    public int itemsPerSide = 5;
+    public float submitCooldown = 5f;
+
+    [Header("Text layout / sizing")]
+    public float fixedFontSize = 20f;
+    public int maxWordLengthBeforeBreak = 20;
+
+    public int inputCharacterLimit = 300;
+    public int maxInputLines = 7;
+    public int maxCharsPerLine = 50;
+
+    int currentDoublePage = 0;
     List<NoteData> notes = new List<NoteData>();
 
-    // Firebase
     DatabaseReference dbRef;
     FirebaseAuth auth;
     string userId;
 
-    // anti-spam
     float lastSubmitTime = -999f;
-    public float submitCooldown = 5f;
 
-    async void Start()
+    bool isProcessingInput = false;
+
+    void Start()
     {
         FirebaseApp.LogLevel = Firebase.LogLevel.Debug;
 
@@ -52,14 +65,32 @@ public class GuestbookManager : MonoBehaviour
         FirebaseApp app = FirebaseApp.Create(options);
         dbRef = FirebaseDatabase.GetInstance(app).RootReference;
 
-        Debug.Log("Database ready");
-
         var query = dbRef
             .Child("guestbook")
             .OrderByChild("timestamp")
             .LimitToLast(2000);
 
         query.ChildAdded += OnChildAdded;
+        query.ChildChanged += OnChildChanged;
+        query.ChildRemoved += OnChildRemoved;
+
+        if (submitButton) submitButton.onClick.AddListener(SubmitButtonClicked);
+        if (prevButton) prevButton.onClick.AddListener(PrevDoublePage);
+        if (nextButton) nextButton.onClick.AddListener(NextDoublePage);
+
+        if (inputField != null)
+        {
+            inputField.characterLimit = inputCharacterLimit;
+            inputField.lineType = TMP_InputField.LineType.MultiLineNewline;
+            if (inputField.textComponent != null)
+            {
+                inputField.textComponent.textWrappingMode = TextWrappingModes.Normal;
+                inputField.textComponent.overflowMode = TextOverflowModes.Overflow;
+            }
+
+            inputField.onValueChanged.AddListener(OnInputValueChanged);
+            UpdateCharacterCounter();
+        }
     }
 
     void OnDestroy()
@@ -70,6 +101,11 @@ public class GuestbookManager : MonoBehaviour
             dbRef.ChildChanged -= OnChildChanged;
             dbRef.ChildRemoved -= OnChildRemoved;
         }
+
+        if (inputField != null)
+        {
+            inputField.onValueChanged.RemoveListener(OnInputValueChanged);
+        }
     }
 
     void OnChildAdded(object sender, ChildChangedEventArgs e)
@@ -78,13 +114,11 @@ public class GuestbookManager : MonoBehaviour
         var n = SnapshotToNote(e.Snapshot);
         if (n == null) return;
 
-        // Avoid duplicates
         if (notes.Any(x => x.id == n.id)) return;
 
         notes.Add(n);
-        notes = notes.OrderBy(x => x.timestamp).ToList(); // oldest -> newest
+        notes = notes.OrderBy(x => x.timestamp).ToList();
 
-        // After we receive data: ensure we open on the last double-page (newest)
         int lastDoublePage = Mathf.Max(0, (notes.Count - 1) / (itemsPerSide * 2));
         currentDoublePage = lastDoublePage;
 
@@ -131,10 +165,8 @@ public class GuestbookManager : MonoBehaviour
         }
     }
 
-    // RENDERING: vypočítá co má být na levé/pravé straně pro currentDoublePage
     void RefreshDoublePageUI()
     {
-        // clear old instances
         if (leftPageArea) { foreach (Transform t in leftPageArea) Destroy(t.gameObject); }
         if (rightPageArea) { foreach (Transform t in rightPageArea) Destroy(t.gameObject); }
 
@@ -148,37 +180,221 @@ public class GuestbookManager : MonoBehaviour
         int totalDoublePages = Mathf.Max(1, Mathf.CeilToInt((float)notes.Count / (itemsPerSide * 2)));
         currentDoublePage = Mathf.Clamp(currentDoublePage, 0, totalDoublePages - 1);
 
-        int startIndex = currentDoublePage * itemsPerSide * 2; // index první položky na levé straně
+        int startIndex = currentDoublePage * itemsPerSide * 2;
         int leftStart = startIndex;
-        int leftEnd = Mathf.Min(notes.Count, leftStart + itemsPerSide); // exclusive
+        int leftEnd = Mathf.Min(notes.Count, leftStart + itemsPerSide);
         int rightStart = leftEnd;
         int rightEnd = Mathf.Min(notes.Count, rightStart + itemsPerSide);
 
-        // instantiate left column
-        for (int i = leftStart; i < leftEnd; i++)
-        {
-            InstantiateNoteUI(notes[i], leftPageArea);
-        }
-        // instantiate right column
-        for (int i = rightStart; i < rightEnd; i++)
-        {
-            InstantiateNoteUI(notes[i], rightPageArea);
-        }
+        CreateSideSlots(leftPageArea, leftStart, itemsPerSide);
+        CreateSideSlots(rightPageArea, rightStart, itemsPerSide);
 
         if (pageInfoText) pageInfoText.text = $"Strana {currentDoublePage + 1} / {totalDoublePages}";
         UpdatePagingButtons();
     }
 
-    void InstantiateNoteUI(NoteData n, Transform parent)
+    void CreateSideSlots(Transform parent, int startIndexForThisSide, int slotsCount)
     {
-        if (notePrefab == null || parent == null) return;
-        var go = Instantiate(notePrefab, parent);
-        var tmp = go.GetComponentInChildren<TextMeshProUGUI>();
-        if (tmp != null)
+        if (parent == null || notePrefab == null) return;
+
+        RectTransform parentRect = parent.GetComponent<RectTransform>();
+        float parentHeight = parentRect != null ? parentRect.rect.height : 0f;
+
+        for (int i = 0; i < slotsCount; i++)
         {
-            string date = n.timestamp > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(n.timestamp).ToLocalTime().ToString("yyyy-MM-dd HH:mm") : "—";
-            tmp.text = $"<size=80%><color=#888>[{date}]</color></size>\n{n.text}";
+            int globalIndex = startIndexForThisSide + i;
+            GameObject go = Instantiate(notePrefab, parent);
+            var tmp = go.GetComponentInChildren<TextMeshProUGUI>();
+            if (tmp != null)
+            {
+                tmp.enableAutoSizing = false;
+                tmp.fontSize = fixedFontSize;
+                tmp.textWrappingMode = TextWrappingModes.Normal;
+                tmp.overflowMode = TextOverflowModes.Overflow;
+                tmp.richText = true;
+            }
+
+            var le = go.GetComponent<LayoutElement>();
+            if (le == null) le = go.AddComponent<LayoutElement>();
+
+            if (parentHeight > 1f)
+            {
+                le.preferredHeight = parentHeight / slotsCount;
+                le.flexibleHeight = 0f;
+                le.minHeight = 0f;
+            }
+            else
+            {
+                le.preferredHeight = -1f;
+                le.flexibleHeight = 1f;
+                le.minHeight = 0f;
+            }
+
+            if (globalIndex < notes.Count)
+            {
+                var n = notes[globalIndex];
+                string date = n.timestamp > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(n.timestamp).ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss") : "—";
+                string safeText = InsertWordBreaks(n.text ?? "", maxWordLengthBeforeBreak);
+                if (tmp != null) tmp.text = $"<size=80%><b><color=#000>[{date}]</color></b></size>\n<color=#333>{safeText}</color>";
+            }
+            else
+            {
+                if (tmp != null) tmp.text = "";
+            }
         }
+
+        Canvas.ForceUpdateCanvases();
+        var layoutGroup = parent.GetComponent<VerticalLayoutGroup>();
+        if (layoutGroup != null) LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
+    }
+
+    string InsertWordBreaks(string input, int maxLen)
+    {
+        if (string.IsNullOrEmpty(input) || maxLen <= 0) return input;
+        var sb = new System.Text.StringBuilder(input.Length + input.Length / maxLen + 4);
+        int run = 0;
+        for (int i = 0; i < input.Length; i++)
+        {
+            char c = input[i];
+            sb.Append(c);
+            if (!char.IsWhiteSpace(c) && !IsPunctuationChar(c))
+            {
+                run++;
+                if (run >= maxLen)
+                {
+                    sb.Append('\u200B');
+                    run = 0;
+                }
+            }
+            else
+            {
+                run = 0;
+            }
+        }
+        return sb.ToString();
+    }
+
+    bool IsPunctuationChar(char c)
+    {
+        return char.IsPunctuation(c) || char.IsSymbol(c);
+    }
+
+
+    void OnInputValueChanged(string value)
+    {
+        if (isProcessingInput) return;
+        isProcessingInput = true;
+
+        EnforceLineWrap();
+        EnforceLineLimit();
+        EnforceTotalCharLimit();
+        UpdateCharacterCounter();
+
+        isProcessingInput = false;
+    }
+
+    int GetGlobalCharIndex(List<string> lines, int lineIndex, int charIndexInLine)
+    {
+        int index = 0;
+        for (int i = 0; i < lineIndex; i++)
+            index += lines[i].Length + 1;
+
+        return index + charIndexInLine;
+    }
+
+    void EnforceLineWrap()
+    {
+        if (inputField == null) return;
+
+        string originalText = inputField.text ?? "";
+        int originalCaret = inputField.caretPosition;
+
+        List<string> lines = new List<string>(originalText.Split('\n'));
+
+        bool changed = false;
+        int caretShift = 0;
+
+        for (int i = 0; i < lines.Count; i++)
+        {
+            while (lines[i].Length > maxCharsPerLine)
+            {
+                string overflow = lines[i].Substring(maxCharsPerLine);
+                lines[i] = lines[i].Substring(0, maxCharsPerLine);
+
+                if (i + 1 < lines.Count)
+                    lines[i + 1] = overflow + lines[i + 1];
+                else
+                    lines.Add(overflow);
+
+                int wrapIndexGlobal = GetGlobalCharIndex(lines, i, maxCharsPerLine);
+                if (originalCaret > wrapIndexGlobal)
+                    caretShift += 1;
+
+                changed = true;
+            }
+        }
+
+        if (lines.Count > maxInputLines)
+        {
+            lines = lines.Take(maxInputLines).ToList();
+            changed = true;
+        }
+
+        string result = string.Join("\n", lines);
+
+        if (result.Length > inputCharacterLimit)
+            result = result.Substring(0, inputCharacterLimit);
+
+        if (!changed || result == originalText) return;
+
+        inputField.text = result;
+
+        int newCaret = Mathf.Clamp(originalCaret + caretShift, 0, result.Length);
+        inputField.caretPosition = newCaret;
+    }
+
+    void EnforceLineLimit()
+    {
+        if (inputField == null) return;
+
+        string text = inputField.text ?? "";
+        string[] lines = text.Split('\n');
+        if (lines.Length <= maxInputLines) return;
+
+        string[] allowed = lines.Take(maxInputLines).ToArray();
+        string result = string.Join("\n", allowed);
+
+        if (result.Length > inputCharacterLimit)
+            result = result.Substring(0, inputCharacterLimit);
+
+        inputField.text = result;
+        inputField.caretPosition = inputField.text.Length;
+    }
+
+    void EnforceTotalCharLimit()
+    {
+        if (inputField == null) return;
+
+        string text = inputField.text ?? "";
+        if (text.Length <= inputCharacterLimit) return;
+
+        inputField.text = text.Substring(0, inputCharacterLimit);
+        inputField.caretPosition = inputField.text.Length;
+    }
+
+    void UpdateCharacterCounter()
+    {
+        if (characterCounterText == null || inputField == null) return;
+
+        int current = inputField.text.Length;
+        characterCounterText.text = $"{current} / {inputCharacterLimit}";
+
+        if (current >= inputCharacterLimit)
+            characterCounterText.color = Color.red;
+        else if (current >= inputCharacterLimit * 0.8f)
+            characterCounterText.color = new Color(1f, 0.6f, 0.2f);
+        else
+            characterCounterText.color = Color.white;
     }
 
     string ShortId(string uid)
@@ -194,7 +410,6 @@ public class GuestbookManager : MonoBehaviour
         if (nextButton) nextButton.interactable = currentDoublePage < totalDoublePages - 1;
     }
 
-    // NAVIGATION (public - můžeš připojit ve Inspectoru)
     public void PrevDoublePage()
     {
         if (currentDoublePage > 0) { currentDoublePage--; RefreshDoublePageUI(); }
@@ -205,15 +420,22 @@ public class GuestbookManager : MonoBehaviour
         if (currentDoublePage < totalDoublePages - 1) { currentDoublePage++; RefreshDoublePageUI(); }
     }
 
-    // SUBMIT
     public void SubmitButtonClicked()
     {
         if (Time.time - lastSubmitTime < submitCooldown) { Debug.Log("Too fast."); return; }
+
         string text = inputField.text?.Trim();
         if (string.IsNullOrEmpty(text)) return;
-        if (text.Length > 1000) text = text.Substring(0, 1000);
+
+        var lines = text.Split('\n').Take(maxInputLines).Select(l => l.Length > maxCharsPerLine ? l.Substring(0, maxCharsPerLine) : l);
+        text = string.Join("\n", lines);
+
+        if (text.Length > inputCharacterLimit)
+            text = text.Substring(0, inputCharacterLimit);
+
         SubmitNote(text);
         inputField.text = "";
+        UpdateCharacterCounter();
         lastSubmitTime = Time.time;
     }
 
@@ -229,5 +451,14 @@ public class GuestbookManager : MonoBehaviour
         dbRef.Child("guestbook").Push().SetValueAsync(noteDict).ContinueWith(t => {
             if (t.IsFaulted) Debug.LogError("Write failed: " + t.Exception);
         });
+    }
+
+    [Serializable]
+    public class NoteData
+    {
+        public string id;
+        public string userId;
+        public string text;
+        public long timestamp;
     }
 }

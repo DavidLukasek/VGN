@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Collider))]
@@ -52,6 +53,16 @@ public class PaintingInteractable : MonoBehaviour
 
     void OnInteractPerformed(InputAction.CallbackContext ctx)
     {
+        if (PauseManager.Instance != null && PauseManager.Instance.IsInputBlocked())
+        {
+            return;
+        }
+
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
+
         if (Time.time - lastInteractTime < interactCooldown) return;
         lastInteractTime = Time.time;
 
