@@ -8331,6 +8331,7 @@ MonoBehaviour:
   pcPlayer: {fileID: 1136717357}
   xrOrigin: {fileID: 1717954560224433018}
   guestBookCanvas: {fileID: 1353309873}
+  guestbookManager: {fileID: 2137581141}
   inputBlockDuration: 0.15
 --- !u!1001 &1752825175
 PrefabInstance:

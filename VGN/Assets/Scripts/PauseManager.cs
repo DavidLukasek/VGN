@@ -29,6 +29,9 @@ public class PauseManager : MonoBehaviour
     bool isPaused;
     bool vrPauseButtonHeld;
     float inputBlockUntil = 0f;
+    bool savedCursorStateStored = false;
+    bool savedCursorVisible = false;
+    CursorLockMode savedCursorLockState = CursorLockMode.Locked;
 
     readonly string[] guestCloseMethodNames = new string[]
     {
@@ -120,11 +123,6 @@ public class PauseManager : MonoBehaviour
 
     void CloseGuestBook()
     {
-        if (guestBookCanvas == null)
-        {
-            return;
-        }
-
         bool invoked = TryInvokeGuestbookCloseMethods(guestBookCanvas);
         if (!invoked)
         {
@@ -144,7 +142,6 @@ public class PauseManager : MonoBehaviour
 
             foreach (var methodName in guestCloseMethodNames)
             {
-                // hledáme veřejné i neveřejné metody bez parametrů
                 var mi = t.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 if (mi != null && mi.GetParameters().Length == 0)
                 {
@@ -178,6 +175,16 @@ public class PauseManager : MonoBehaviour
     {
         isPaused = !isPaused;
 
+        if (isPaused)
+        {
+            if (!savedCursorStateStored)
+            {
+                savedCursorVisible = Cursor.visible;
+                savedCursorLockState = Cursor.lockState;
+                savedCursorStateStored = true;
+            }
+        }
+
         if (pauseCanvas != null)
             pauseCanvas.SetActive(isPaused);
 
@@ -193,28 +200,46 @@ public class PauseManager : MonoBehaviour
             #pragma warning restore CS0618
         }
 
-        Cursor.visible = isPaused;
-        Cursor.lockState = isPaused ? CursorLockMode.None : CursorLockMode.Locked;
-
-        if (!isPaused)
+        if (isPaused)
         {
-            inputBlockUntil = Time.time + inputBlockDuration;
-            Debug.Log($"[PauseManager] Resumed -> blok vstupu do {inputBlockUntil} (Time.time={Time.time})");
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
         else
         {
-            Debug.Log("[PauseManager] Paused");
+            if (IsGuestBookOpen())
+            {
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+            }
+            else if (savedCursorStateStored)
+            {
+                Cursor.visible = savedCursorVisible;
+                Cursor.lockState = savedCursorLockState;
+                savedCursorStateStored = false;
+            }
+            else
+            {
+                Cursor.visible = false;
+                Cursor.lockState = CursorLockMode.Locked;
+            }
+
+            inputBlockUntil = Time.time + inputBlockDuration;
+
+            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
         }
     }
 
     public void Resume()
     {
         UISoundManager.PlayClick();
-        if (!isPaused) return;
-        inputBlockUntil = Time.time + inputBlockDuration + 0.12f;
-        if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
+        if (isPaused)
+        {
+            inputBlockUntil = Time.time + inputBlockDuration + 0.12f;
+            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
 
-        TogglePause();
+            TogglePause();
+        }
     }
 
     public void ExitToMenu()
