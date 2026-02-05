@@ -1288,12 +1288,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
   m_Padding:
-    m_Left: 40
-    m_Right: 40
+    m_Left: 70
+    m_Right: 70
     m_Top: 0
     m_Bottom: 50
   m_ChildAlignment: 0
-  m_Spacing: 100
+  m_Spacing: 110
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -2102,7 +2102,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 500
+  m_PreferredWidth: 550
   m_PreferredHeight: 950
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
@@ -3044,7 +3044,7 @@ MonoBehaviour:
     m_Top: 20
     m_Bottom: 20
   m_ChildAlignment: 4
-  m_Spacing: 100
+  m_Spacing: 50
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -3284,7 +3284,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 500
+  m_PreferredWidth: 550
   m_PreferredHeight: 100
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
@@ -5130,8 +5130,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 500
-  m_PreferredHeight: 185
+  m_PreferredWidth: 550
+  m_PreferredHeight: 210
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -5458,7 +5458,7 @@ MonoBehaviour:
     m_Top: 10
     m_Bottom: 10
   m_ChildAlignment: 0
-  m_Spacing: 10
+  m_Spacing: 0
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -5519,7 +5519,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 500
+  m_PreferredWidth: 550
   m_PreferredHeight: 80
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
@@ -7051,7 +7051,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 500
+  m_PreferredWidth: 550
   m_PreferredHeight: 950
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
@@ -7903,8 +7903,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 21
-  m_fontSizeBase: 21
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -8331,7 +8331,6 @@ MonoBehaviour:
   pcPlayer: {fileID: 1136717357}
   xrOrigin: {fileID: 1717954560224433018}
   guestBookCanvas: {fileID: 1353309873}
-  guestbookManager: {fileID: 2137581141}
   inputBlockDuration: 0.15
 --- !u!1001 &1752825175
 PrefabInstance:
@@ -9745,11 +9744,16 @@ MonoBehaviour:
   notePrefab: {fileID: 645724191}
   itemsPerSide: 5
   submitCooldown: 5
+  monoFont: {fileID: 11400000, guid: b4f30575274bbab4aa759ba414b87290, type: 2}
+  inputFieldPreferredWidth: 500
+  forceDisableContentSizeFitter: 1
   fixedFontSize: 20
-  maxWordLengthBeforeBreak: 20
-  inputCharacterLimit: 350
-  maxInputLines: 7
-  maxCharsPerLine: 50
+  maxWordLengthBeforeBreak: 40
+  inputCharacterLimit: 245
+  maxInputLines: 6
+  maxCharsPerLine: 40
+  displayCharsPerLine: 40
+  displayMaxLines: 6
 --- !u!4 &1717954560224433017 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1717954561962503726, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
@@ -9768,6 +9772,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 505727421}
     m_Modifications:
+    - target: {fileID: 883432683943031005, guid: 105ba13656c494744b233b394036fc6e, type: 3}
+      propertyPath: m_FlexibleWidth
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 883432683943031005, guid: 105ba13656c494744b233b394036fc6e, type: 3}
       propertyPath: m_FlexibleHeight
       value: 1
@@ -9854,6 +9862,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5210778891342248113, guid: 105ba13656c494744b233b394036fc6e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6411736780767375487, guid: 105ba13656c494744b233b394036fc6e, type: 3}
+      propertyPath: m_fontSize
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 6411736780767375487, guid: 105ba13656c494744b233b394036fc6e, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: b4f30575274bbab4aa759ba414b87290, type: 2}
+    - target: {fileID: 6411736780767375487, guid: 105ba13656c494744b233b394036fc6e, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 6411736780767375487, guid: 105ba13656c494744b233b394036fc6e, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: -5316480048171592559, guid: b4f30575274bbab4aa759ba414b87290, type: 2}
+    - target: {fileID: 6411736780767375487, guid: 105ba13656c494744b233b394036fc6e, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6411736780767375487, guid: 105ba13656c494744b233b394036fc6e, type: 3}
+      propertyPath: m_hasFontAssetChanged
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
