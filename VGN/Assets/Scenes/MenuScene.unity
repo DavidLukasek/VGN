@@ -916,7 +916,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Verze 0.0.2\n\xA9 David DDI Luk\xE1\u0161ek & Vlastimil Novotn\xFD 2026"
+  m_text: "Verze 0.0.3\n\xA9 David DDI Luk\xE1\u0161ek & Vlastimil Novotn\xFD 2026"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2e498d1c8094910479dc3e1b768306a4, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 2e498d1c8094910479dc3e1b768306a4, type: 2}

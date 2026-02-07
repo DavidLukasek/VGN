@@ -40,6 +40,7 @@ public class BookInteract : MonoBehaviour
     {
         if (guestbookCanvas != null)
             guestbookCanvas.SetActive(false);
+        OpenGuestbook();
     }
 
     private void OnInteractPerformed(InputAction.CallbackContext ctx)

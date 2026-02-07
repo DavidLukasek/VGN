@@ -33,7 +33,7 @@ public class GuestbookManager : MonoBehaviour
 
     [Header("Font / Layout")]
     public TMP_FontAsset monoFont;
-    public float inputFieldPreferredWidth = 500f;
+    public float inputFieldPreferredWidth = 550f;
     public bool forceDisableContentSizeFitter = true;
 
     [Header("Text layout / sizing")]
