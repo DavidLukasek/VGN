@@ -10,6 +10,7 @@ public class UISoundManager : MonoBehaviour
     public AudioClip hoverSound;
     public AudioClip clickSound;
     public AudioClip helpSound;
+    public AudioClip pageSound;
 
     void Awake()
     {
@@ -39,5 +40,11 @@ public class UISoundManager : MonoBehaviour
     {
         if (Instance == null) return;
         Instance.source.PlayOneShot(Instance.helpSound);
+    }
+
+    public static void PlayPageTurn()
+    {
+        if (Instance == null) return;
+        Instance.source.PlayOneShot(Instance.pageSound);
     }
 }

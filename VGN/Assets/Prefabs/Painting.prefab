@@ -101,7 +101,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  targetFOV: 35
+  targetFOV: 30
   interactCooldown: 0.12
 --- !u!1 &6456587125842391189
 GameObject:

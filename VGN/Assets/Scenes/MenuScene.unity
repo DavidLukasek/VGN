@@ -413,6 +413,7 @@ MonoBehaviour:
   hoverSound: {fileID: 8300000, guid: 799a0db3464ac5b47b6ab2bd2f0b026c, type: 3}
   clickSound: {fileID: 8300000, guid: 2d203fb55d350644b98a5cb96ecdc2da, type: 3}
   helpSound: {fileID: 8300000, guid: 355b4a39f5bda104cac956c62c32e949, type: 3}
+  pageSound: {fileID: 8300000, guid: 92912cd3ea64b654982550da6b2c44b2, type: 3}
 --- !u!82 &376989192
 AudioSource:
   m_ObjectHideFlags: 0

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "825982060371",
+    "firebase_url": "https://vgn-by-ddi-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "vgn-by-ddi",
+    "storage_bucket": "vgn-by-ddi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:825982060371:android:6024d3b9ac42cd622943a6",
+        "android_client_info": {
+          "package_name": "com.ddi.vgn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPGZp4SWbpXnDAFSmCUiADtER8xt64IFQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

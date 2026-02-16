@@ -632,6 +632,7 @@ public class GuestbookManager : MonoBehaviour
             currentDoublePage = newIndex;
             RefreshDoublePageUI();
         }
+        UISoundManager.PlayPageTurn();
     }
 
     public void NextDoublePage()
@@ -644,6 +645,7 @@ public class GuestbookManager : MonoBehaviour
             currentDoublePage = newIndex;
             RefreshDoublePageUI();
         }
+        UISoundManager.PlayPageTurn();
     }
 
     public void SubmitButtonClicked()
