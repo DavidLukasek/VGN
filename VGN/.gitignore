@@ -10,6 +10,8 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+/Build_Linux/
+/VGN_BurstDebugInformation_DoNotShip/
 *.log
 *.lnk
 Player.log.lnk

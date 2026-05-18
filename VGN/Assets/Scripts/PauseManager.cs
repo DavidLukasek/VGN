@@ -77,6 +77,9 @@ public class PauseManager : MonoBehaviour
         if (xrOrigin == null || !xrOrigin.activeSelf)
             return;
 
+        if (XRSettings.loadedDeviceName == null || XRSettings.loadedDeviceName == "")
+            return;
+
         var device = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
         if (!device.isValid)
             return;
