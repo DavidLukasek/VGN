@@ -4425,7 +4425,10 @@ MonoBehaviour:
     INTERAKCE  ======\\n\\nPro bli\u017E\u0161\xED prozkoum\xE1n\xED obrazu\\nk n\u011Bmu
     p\u0159ijd\u011Bte, pod\xEDvejte se\\np\u0159\xEDmo na n\u011Bj a zm\xE1\u010Dkn\u011Bte
     lev\xE9\\ntla\u010D\xEDtko my\u0161i. Prohl\xED\u017Een\xED pot\xE9\\nopust\xEDte
-    op\u011Btovn\xFDm zm\xE1\u010Dknut\xEDm."
+    op\u011Btovn\xFDm zm\xE1\u010Dknut\xEDm.\\nB\u011Bhem prohl\xED\u017Een\xED si
+    obraz m\u016F\u017Eete\\nvoln\u011B p\u0159ibli\u017Eovat nebo oddalovat\\nprot\xE1\u010Den\xEDm
+    kole\u010Dka my\u0161i.\\nJeho stisknut\xEDm a posunut\xEDm my\u0161\xED\\nobraz
+    posunete."
 --- !u!114 &756485820
 MonoBehaviour:
   m_ObjectHideFlags: 0

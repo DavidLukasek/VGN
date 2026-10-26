@@ -27,6 +27,9 @@ public class PauseManager : MonoBehaviour
     public float inputBlockDuration = 0.25f;
 
     bool isPaused;
+    // expose the pause state to camera transitions and painting controls
+    public bool IsPaused => isPaused;
+
     bool vrPauseButtonHeld;
     float inputBlockUntil = 0f;
     bool savedCursorStateStored = false;
@@ -205,28 +208,31 @@ public class PauseManager : MonoBehaviour
 
         if (isPaused)
         {
-            Cursor.visible = true;
+            // unlock the cursor before showing it in the pause menu
             Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
         else
         {
-            if (IsGuestBookOpen())
+            // the player enables before this branch and hides the cursor again
+            if (IsGuestBookOpen() || PaintingInteractable.IsInspecting)
             {
-                Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
             }
             else if (savedCursorStateStored)
             {
-                Cursor.visible = savedCursorVisible;
                 Cursor.lockState = savedCursorLockState;
-                savedCursorStateStored = false;
+                Cursor.visible = savedCursorVisible;
             }
             else
             {
-                Cursor.visible = false;
                 Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
             }
 
+            // consume the cursor snapshot after returning to the game
+            savedCursorStateStored = false;
             inputBlockUntil = Time.time + inputBlockDuration;
 
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
@@ -268,7 +274,8 @@ public class PauseManager : MonoBehaviour
 
     public bool IsInputBlocked()
     {
-        return Time.time < inputBlockUntil;
+        // block scene interactions for the entire pause and shortly after resuming
+        return isPaused || Time.time < inputBlockUntil;
     }
 
     public void BlockInputForSeconds(float seconds)

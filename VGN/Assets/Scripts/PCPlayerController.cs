@@ -31,7 +31,8 @@ public class PCPlayerController : MonoBehaviour
 
     public void OnMove(InputValue value)
     {
-        moveInput = value.Get<Vector2>();
+        // ignore walking input while the painting owns the camera
+        moveInput = movementLocked ? Vector2.zero : value.Get<Vector2>();
     }
 
     public void OnLook(InputValue value)
@@ -41,13 +42,21 @@ public class PCPlayerController : MonoBehaviour
 
     public void OnJump(InputValue value)
     {
-        if (value.isPressed && cc.isGrounded)
+        // prevent a jump from being stored during painting inspection
+        if (!movementLocked && value.isPressed && cc.isGrounded)
             verticalVelocity = jumpForce;
     }
 
     public void LockMovement(bool value)
     {
         movementLocked = value;
+
+        // discard input from the frame that opened the painting
+        if (movementLocked)
+        {
+            lookInput = Vector2.zero;
+            moveInput = Vector2.zero;
+        }
     }
 
     public void SetCameraPitchFromTransform()
