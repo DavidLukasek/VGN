@@ -65,9 +65,13 @@ public class PCPlayerController : MonoBehaviour
 
     void OnDisable()
     {
+        // release the cursor while the player is disabled
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        movementLocked = false;
+
+        // clear stored input and preserve the painting movement lock during pause
+        lookInput = Vector2.zero;
+        moveInput = Vector2.zero;
     }
 
     void Update()
